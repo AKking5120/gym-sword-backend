@@ -1,0 +1,57 @@
+# Environment
+.env
+.env.local
+.env.production
+.env.development
+
+# Dependencies
+node_modules/
+
+# Build
+frontend/build/
+backend/public/
+
+# Logs
+backend/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temp
+backend/temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Uploaded files
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Backend output
+backend/*.txt
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.bak
+*.orig

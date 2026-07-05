@@ -1,0 +1,3 @@
+Could not connect to database for settings table init. Settings will use env defaults until table is created.
+Run the SQL from backend/migrations/activity_logs.sql (settings section) in the Supabase SQL Editor.
+UNCAUGHT EXCEPTION: listen EADDRINUSE: address already in use :::5000
