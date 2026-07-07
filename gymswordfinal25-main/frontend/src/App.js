@@ -1,16 +1,54 @@
 import "@/App.css";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { Component, useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("App Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-white p-8">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 bg-black flex items-center justify-center mx-auto mb-6">
+              <span className="text-white text-2xl font-black">!</span>
+            </div>
+            <h1 className="text-2xl font-black text-black mb-2">Something went wrong</h1>
+            <p className="text-sm text-black/50 mb-6">An unexpected error occurred. Please try refreshing the page.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-black text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-black/80 transition-colors"
+            >
+              Refresh Page
+            </button>
+            {this.state.error && (
+              <p className="text-xs text-red-400 mt-4 font-mono break-all">{this.state.error.message}</p>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { SiteProvider } from "@/context/SiteContext";
 
 import SEO from "@/components/SEO";
 import ChatBot from "@/components/ChatBot";
-import CustomCursor from "@/components/CustomCursor";
+import ReferralTab from "@/components/ReferralTab";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 
@@ -202,22 +240,24 @@ function AppRoutes() {
 
 function App() {
   return (
-    <SiteProvider>
-      <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <BrowserRouter>
-              <SEO />
-              <WelcomePopupGate />
-              <Toaster position="top-center" theme="light" />
-              <ChatBot />
-              <CustomCursor />
-              <AppRoutes />
-            </BrowserRouter>
-          </CartProvider>
-        </WishlistProvider>
-      </AuthProvider>
-    </SiteProvider>
+    <ErrorBoundary>
+      <SiteProvider>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <BrowserRouter>
+                <SEO />
+                <WelcomePopupGate />
+                <Toaster position="top-center" theme="light" />
+                <ChatBot />
+                <ReferralTab />
+                <AppRoutes />
+              </BrowserRouter>
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
+      </SiteProvider>
+    </ErrorBoundary>
   );
 }
 

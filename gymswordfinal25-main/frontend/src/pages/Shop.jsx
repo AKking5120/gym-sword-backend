@@ -211,7 +211,7 @@ export default function Shop() {
       });
     }
     return list;
-  }, [products, selectedTypes, selectedGenders, selectedPriceRanges, selectedColors, selectedSizes]);
+  }, [products, cat, selectedTypes, selectedGenders, selectedPriceRanges, selectedColors, selectedSizes]);
 
   const activeFilterCount =
     selectedGenders.length + selectedTypes.length + selectedPriceRanges.length + selectedColors.length + selectedSizes.length;

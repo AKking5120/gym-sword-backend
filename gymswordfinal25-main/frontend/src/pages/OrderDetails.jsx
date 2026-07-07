@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Package, Check, Truck, Clock, MapPin, Download, RefreshCw, X, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -54,14 +54,14 @@ export default function OrderDetails() {
   const [cancelComment, setCancelComment] = useState("");
   const [cancelling, setCancelling] = useState(false);
 
-  const fetchOrder = () => {
+  const fetchOrder = useCallback(() => {
     api.get(`/orders/${id}`).then(({ data }) => {
       setOrder(data);
       setLoading(false);
     }).catch(() => setLoading(false));
-  };
+  }, [id]);
 
-  useEffect(() => { fetchOrder(); }, [id]);
+  useEffect(() => { fetchOrder(); }, [fetchOrder]);
 
   const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" }) : "";
   const formatDateTime = (d) => d ? new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";

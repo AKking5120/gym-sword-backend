@@ -1,8 +1,8 @@
 const supabase = require('../config/db');
 const { sendSuccess, sendError, formatOrderNumber } = require('../utils/helpers');
-const { debitWallet } = require('../services/walletService');
+const { debitWallet, creditWallet } = require('../services/walletService');
 const { createNotification } = require('../services/notificationService');
-const { sendOrderConfirmation, sendShippingStatus } = require('../services/emailService');
+const { sendOrderConfirmation, sendShippingStatus, sendReferralReward } = require('../services/emailService');
 const { generateInvoice } = require('../services/pdfService');
 
 // POST /api/orders
@@ -388,6 +388,79 @@ const updateOrderStatus = async (req, res) => {
     }
 
     await createNotification(order.users.id, 'Order Update', `Your order #${order.id} status changed to ${status || order.status}.`);
+
+    // ─── AUTO REWARD REFERRAL ON DELIVERY ───
+    if (status === 'delivered' && order.users?.id) {
+      (async () => {
+        try {
+          const { data: referredUser } = await supabase
+            .from('users')
+            .select('id, email, name, referred_by')
+            .eq('id', order.users.id)
+            .single();
+
+          if (referredUser?.referred_by) {
+            const { data: referrer } = await supabase
+              .from('users')
+              .select('id, name, email, referral_code')
+              .eq('referral_code', referredUser.referred_by)
+              .single();
+
+            if (referrer && referrer.id !== referredUser.id) {
+              const { data: existingReferral } = await supabase
+                .from('referrals')
+                .select('id')
+                .eq('referrer_id', referrer.id)
+                .eq('referred_user_id', referredUser.id)
+                .maybeSingle();
+
+              if (!existingReferral) {
+                const rewardCoins = 500;
+                const bonusCoins = 50;
+
+                await supabase.from('referrals').insert({
+                  referrer_id: referrer.id,
+                  referred_user_id: referredUser.id,
+                  referral_code: referrer.referral_code,
+                  reward_coins: rewardCoins,
+                  reward_given: true,
+                });
+
+                await creditWallet(referrer.id, rewardCoins, `Referral reward for referring ${referredUser.name || referredUser.email}`);
+                await creditWallet(referrer.id, bonusCoins, `Referral bonus coins for order #${order.id}`);
+
+                await createNotification(referrer.id, 'Referral Reward!', `You earned ₹${rewardCoins} wallet credit + ${bonusCoins} bonus coins! ${referredUser.name || 'Your friend'} completed their first purchase.`);
+
+                if (referrer.email) {
+                  sendReferralReward(
+                    { name: referrer.name, email: referrer.email },
+                    { name: referredUser.name || 'a friend', coins: rewardCoins, bonus: bonusCoins }
+                  ).catch(() => {});
+                }
+              } else if (!existingReferral.reward_given) {
+                const rewardCoins = 500;
+                const bonusCoins = 50;
+
+                await supabase.from('referrals').update({ reward_given: true }).eq('id', existingReferral.id);
+                await creditWallet(referrer.id, rewardCoins, `Referral reward for order #${order.id}`);
+                await creditWallet(referrer.id, bonusCoins, `Referral bonus coins for order #${order.id}`);
+
+                await createNotification(referrer.id, 'Referral Reward!', `You earned ₹${rewardCoins} wallet credit + ${bonusCoins} bonus coins!`);
+
+                if (referrer.email) {
+                  sendReferralReward(
+                    { name: referrer.name, email: referrer.email },
+                    { name: referredUser.name || 'a friend', coins: rewardCoins, bonus: bonusCoins }
+                  ).catch(() => {});
+                }
+              }
+            }
+          }
+        } catch (refErr) {
+          console.error('Referral auto-reward error:', refErr.message);
+        }
+      })();
+    }
 
     // Send shipping status email (fire and forget)
     if (status && order.users?.email) {

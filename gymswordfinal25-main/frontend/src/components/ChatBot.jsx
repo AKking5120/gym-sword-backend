@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageCircle, X, Send, Bot, User, Trash2, RefreshCw, Eye, ShoppingBag, Mic, MicOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { api, resolveImage, PRODUCT_IMAGE_PLACEHOLDER } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useSite } from "@/context/SiteContext";
 
 const WELCOME_MSG = {
   role: "assistant",
@@ -50,12 +51,16 @@ const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 
 const ProductCard = memo(({ product }) => {
   const navigate = useNavigate();
+  const { settings } = useSite();
   const [imgError, setImgError] = useState(false);
   const rawUrl = getImageUrl(product);
   const imgSrc = rawUrl ? resolveImage(rawUrl) : null;
+  const comingSoon = settings?.coming_soon;
   const discounted = product.compare_price && product.compare_price > product.price;
   const discountPct = discounted ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100) : 0;
   const showPlaceholder = !rawUrl || imgError;
+
+  useEffect(() => { setImgError(false); }, [rawUrl]);
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shrink-0 w-[185px] snap-start hover:border-white/30 hover:bg-white/[0.07] transition-all duration-300">
@@ -69,10 +74,16 @@ const ProductCard = memo(({ product }) => {
           <img
             src={imgSrc}
             alt={product.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-            loading="lazy"
+            className={`w-full h-full object-cover transition-all duration-700 ${
+              comingSoon ? "scale-110 blur-[12px]" : "hover:scale-105"
+            }`}
             onError={() => setImgError(true)}
           />
+        )}
+        {comingSoon && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="mt-1 text-[8px] text-white/70 tracking-[0.2em] uppercase drop-shadow-lg">Coming Soon</div>
+          </div>
         )}
         {discountPct > 0 && (
           <span className="absolute top-2.5 left-2.5 bg-red-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm">
@@ -294,7 +305,8 @@ export default function ChatBot() {
   }, [messages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = bottomRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
   useEffect(() => {

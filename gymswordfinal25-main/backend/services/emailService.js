@@ -358,6 +358,40 @@ async function sendShippingStatus(user, order, status, items) {
   });
 }
 
+function referralReward(name, friendName, coins, bonus) {
+  return minimalShell(`
+    <p style="margin:0 0 16px;font-size:14px;color:#333;line-height:1.5">Hey ${name},</p>
+    <div style="margin:0 0 20px">
+      <span style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px">Referral Reward Unlocked</span>
+      <div style="font-size:28px;font-weight:900;color:#111;letter-spacing:-0.5px">You earned <span style="color:#000">₹${coins}</span>!</div>
+    </div>
+    <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6">${friendName} completed their first purchase on GymSword. You've been credited with:</p>
+    <div style="margin:0 0 20px;padding:16px 20px;background:#f8f8f8;border-radius:2px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee">
+        <span style="font-size:14px;color:#555">Wallet Credit</span>
+        <span style="font-size:16px;font-weight:900;color:#111">₹${coins}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0">
+        <span style="font-size:14px;color:#555">Bonus Coins</span>
+        <span style="font-size:16px;font-weight:900;color:#111">+${bonus}</span>
+      </div>
+    </div>
+    <p style="margin:0 0 16px;font-size:13px;color:#777;line-height:1.5">Keep sharing your referral link to earn more rewards!</p>
+    <table cellpadding="0" cellspacing="0"><tr><td><a href="${SITE_URL}/account/referrals" style="display:inline-block;background:#111;color:#fff!important;text-decoration:none;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:12px 28px;border-radius:2px">View Rewards</a></td></tr></table>
+    <p style="margin:16px 0 0;font-size:14px;color:#333">Regards,<br>GymSword Team</p>
+  `);
+}
+
+async function sendReferralReward(user, { name: friendName, coins, bonus }) {
+  await sendMail({
+    to: user.email,
+    subject: 'Referral Reward Unlocked! — GymSword',
+    html: referralReward(user.name, friendName, coins, bonus),
+    userId: user.id,
+    type: 'referral_reward',
+  });
+}
+
 module.exports = {
   sendVerificationOTP,
   sendWelcomeEmail,
@@ -366,4 +400,5 @@ module.exports = {
   sendLoginOTP,
   sendOrderConfirmation,
   sendShippingStatus,
+  sendReferralReward,
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { formatPrice } from "@/lib/currency";
 import { toast } from "sonner";
@@ -11,8 +11,8 @@ export default function AdminCustomers() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [loginHistory, setLoginHistory] = useState([]);
 
-  const load = () => api.get("/admin/users" + (filter !== "all" ? `?verified=${filter}` : "")).then(({ data }) => setUsers(data || [])).catch(() => {});
-  useEffect(() => { load(); }, [filter]);
+  const load = useCallback(() => api.get("/admin/users" + (filter !== "all" ? `?verified=${filter}` : "")).then(({ data }) => setUsers(data || [])).catch(() => {}), [filter]);
+  useEffect(() => { load(); }, [load]);
 
   const toggleDisable = async (id, current) => {
     try {

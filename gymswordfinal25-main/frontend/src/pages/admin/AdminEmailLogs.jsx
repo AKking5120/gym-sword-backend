@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, CheckCircle, XCircle, Clock } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -10,14 +10,14 @@ export default function AdminEmailLogs() {
   const [total, setTotal] = useState(0);
   const limit = 30;
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     api.get(`/admin/email-logs?page=${page}&limit=${limit}`).then(({ data, pagination }) => {
       setLogs(data?.data || []);
       if (pagination) setTotal(pagination.total);
     }).catch(() => {}).finally(() => setLoading(false));
-  };
-  useEffect(() => { load(); }, [page]);
+  }, [page]);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = logs.filter(l =>
     l.recipient?.toLowerCase().includes(search.toLowerCase()) ||

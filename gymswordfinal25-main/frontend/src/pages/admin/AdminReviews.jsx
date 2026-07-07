@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, Check, X, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { api, resolveImage } from "@/lib/api";
@@ -19,7 +19,7 @@ export default function AdminReviews() {
   const [total, setTotal] = useState(0);
   const limit = 20;
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams({ page, limit });
     if (statusFilter) params.set("status", statusFilter);
@@ -27,9 +27,9 @@ export default function AdminReviews() {
       setReviews(data?.reviews || []);
       if (pagination) setTotal(pagination.total);
     }).catch(() => {}).finally(() => setLoading(false));
-  };
+  }, [page, statusFilter]);
 
-  useEffect(() => { load(); }, [page, statusFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (id, status) => {
     try { await api.patch(`/admin/reviews/${id}/status`, { status }); toast.success(`Review ${status}`); load(); }

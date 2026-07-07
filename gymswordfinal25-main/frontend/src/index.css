@@ -201,21 +201,3 @@
 html {
   scroll-behavior: smooth;
 }
-
-/* Custom cursor base - hides default cursor when custom cursor is active */
-html.gymsword-cursor-active,
-html.gymsword-cursor-active * {
-  cursor: none !important;
-}
-
-/* Show text cursor for form inputs (allow text selection) */
-html.gymsword-cursor-active input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
-html.gymsword-cursor-active textarea,
-html.gymsword-cursor-active [contenteditable="true"] {
-  cursor: text !important;
-}
-
-/* Show grab cursor for draggable elements */
-html.gymsword-cursor-active [draggable="true"] {
-  cursor: grab !important;
-}
